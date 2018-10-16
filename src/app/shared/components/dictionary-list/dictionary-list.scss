@@ -1,0 +1,18 @@
+:host{
+  padding: 20px;
+  background-color: bisque;
+  max-width: 500px;
+  border-radius: 5px;
+  border-width: 1px;
+  display: flex;
+  flex-direction: column;
+
+  .word-row{
+    display: block;
+    max-width: 200px;
+    border-radius: 8px;
+    background-color: tan;
+    margin: 5px;
+  }
+
+}

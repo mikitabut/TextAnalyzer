@@ -1,0 +1,23 @@
+:host {
+  .progress-container {
+    position: relative;
+    border-width: 1px;
+    width: 400px;
+    border-style: solid;
+    border-color: orange;
+    height: 25px;
+
+    .text-block{
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-bar {
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      height: 25px;
+      background-color: grey;
+    }
+  }
+}

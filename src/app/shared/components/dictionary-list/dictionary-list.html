@@ -1,0 +1,10 @@
+<div>Sort <span (click)="sortOrderChange();">
+    {{currentOrder === 1? '↑': '↓'}}</span> by
+  <span (click)="sortChange();">{{selectedSorting}}</span></div>
+<div *ngFor="let word of words" class="word-row">
+  {{ wordMap[word].word }} - {{ wordMap[word].count }}
+  <div><input (keyup.enter)="onKey($event, word)"></div>
+</div>
+<!-- <select>
+  <option *ngFor="let length of words.slice((currentPage-1)*pages, currentPage * pages || 1)">{{currentPage * }}</option>
+</select> -->
