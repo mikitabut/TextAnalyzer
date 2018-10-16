@@ -1,10 +1,20 @@
-<div>Sort <span (click)="sortOrderChange();">
-    {{currentOrder === 1? '↑': '↓'}}</span> by
-  <span (click)="sortChange();">{{selectedSorting}}</span></div>
-<div *ngFor="let word of words" class="word-row">
-  {{ wordMap[word].word }} - {{ wordMap[word].count }}
+<div>Sort
+  <span (click)="sortOrderChange();">
+    {{currentOrder === 1? '↑': '↓'}}
+  </span> by
+  <span (click)="sortChange();">
+    {{selectedSorting}}
+  </span>
+</div>
+<div *ngFor="let word of showedWords" class="word-row">
+  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }}
   <div><input (keyup.enter)="onKey($event, word)"></div>
 </div>
-<!-- <select>
-  <option *ngFor="let length of words.slice((currentPage-1)*pages, currentPage * pages || 1)">{{currentPage * }}</option>
-</select> -->
+<select (change)="onCountSelected($event.target.value)">
+  <option value="10">10</option>
+  <option value="20">20</option>
+  <option value="40">40</option>
+</select>
+<select (change)="onPageSelected($event.target.value)">
+  <option *ngFor="let page of this.pages" [value]="page">{{ page }}</option>
+</select>

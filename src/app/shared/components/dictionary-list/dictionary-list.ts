@@ -1,10 +1,4 @@
-import {
-  Component,
-  Input,
-  OnInit,
-  OnChanges,
-  SimpleChanges
-} from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 
 @Component({
   selector: 'app-dictionary-list',
@@ -16,30 +10,37 @@ export class DictionaryListComponent implements OnChanges {
   data;
 
   words = [];
-  wordMap = {};
+  wordMap = new Map<string, { word: string; count: number }>();
 
   currentOrder = 1;
-  currentPage = 1;
-  pages = this.words.length / 100;
+  selectedSorting: 'Name' | 'Count' = 'Count';
 
-  selectedSorting: 'Name' | 'Count' | 'No' = 'No';
+  currentPage = 1;
+  countOnPage = 10;
+  pages = [];
+  showedWords: any[];
 
   ngOnChanges(changes) {
+    this.words = [];
+    this.wordMap.clear();
     this.data.map(word => this.setWord(word));
-    this.words = Object.keys(this.wordMap);
+    console.log('map setted');
+    this.words = Array.from(this.wordMap.keys());
+    console.log('words array setted');
+
+    this.applySorting();
+    console.log('sorting applied');
+    this.onCountSelected(this.countOnPage);
+    console.log('count selected');
   }
 
   setWord(word: string) {
-    if (this.wordMap[word]) {
-      this.wordMap[word].count += 1;
+    if (this.wordMap.has(word)) {
+      const value = this.wordMap.get(word);
+      this.wordMap.set(word, { word, count: value.count + 1 });
     } else {
-      this.wordMap[word] = { word, count: 1 };
+      this.wordMap.set(word, { word, count: 1 });
     }
-  }
-
-  getWordsKeys() {
-    this.words = Object.keys(this.data);
-    return this.words;
   }
 
   sortByName() {
@@ -53,11 +54,13 @@ export class DictionaryListComponent implements OnChanges {
   sortByCount() {
     if (this.currentOrder === -1) {
       this.words.sort(
-        (a, b) => (this.wordMap[a].count < this.wordMap[b].count ? 1 : -1)
+        (a, b) =>
+          this.wordMap.get(a).count < this.wordMap.get(b).count ? 1 : -1
       );
     } else {
       this.words.sort(
-        (a, b) => (this.wordMap[a].count < this.wordMap[b].count ? -1 : 1)
+        (a, b) =>
+          this.wordMap.get(a).count < this.wordMap.get(b).count ? -1 : 1
       );
     }
   }
@@ -82,13 +85,40 @@ export class DictionaryListComponent implements OnChanges {
     } else {
       this.sortByCount();
     }
+    this.updateWordsView(1);
   }
 
   onKey(event, word) {
     if (word !== event.target.value) {
       this.setWord(event.target.value);
-      delete this.wordMap[word];
-      this.words = Object.keys(this.wordMap);
+      this.wordMap.set(event.target.value, {
+        word: event.target.value,
+        count: this.wordMap.get(word).count
+      });
+      this.wordMap.delete(word);
+      this.words = Array.from(this.wordMap.keys());
     }
+  }
+
+  onCountSelected(countOnPage: number) {
+    this.countOnPage = countOnPage;
+    this.currentPage = 1;
+    const pageCount = Math.floor(
+      this.words.length / this.countOnPage +
+        (this.words.length % this.countOnPage > 0 ? 1 : 0)
+    );
+    this.pages = new Array(pageCount).fill(0).map((x, i) => i + 1);
+    this.updateWordsView(1);
+  }
+
+  onPageSelected(pageNumber: number) {
+    this.updateWordsView(pageNumber);
+  }
+
+  private updateWordsView(pageNumber: number) {
+    this.showedWords = this.words.slice(
+      (pageNumber - 1) * this.countOnPage,
+      pageNumber * this.countOnPage
+    );
   }
 }
