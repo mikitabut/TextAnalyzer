@@ -1,6 +1,7 @@
 :host {
   .progress-container {
     position: relative;
+    display: flex;
     border-width: 1px;
     width: 400px;
     border-style: solid;
@@ -18,6 +19,15 @@
       top: 0;
       height: 25px;
       background-color: grey;
+    }
+  }
+
+  .dictionary-container{
+    display: flex;
+
+
+    .legend {
+      font-size: 12px;
     }
   }
 }

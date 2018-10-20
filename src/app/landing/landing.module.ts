@@ -5,23 +5,19 @@ import { RouterModule, Routes } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { FileSaverModule } from 'ngx-filesaver';
 
-const appRoutes: Routes = [
-  { path: '', component: EntryPageComponent },
-];
+const appRoutes: Routes = [{ path: '', component: EntryPageComponent }];
 
 @NgModule({
-  declarations: [
-    EntryPageComponent,
-  ],
+  declarations: [EntryPageComponent],
   imports: [
     SharedModule,
     CommonModule,
     FormsModule,
     HttpClientModule,
-    RouterModule.forChild(
-      appRoutes,
-    )
-  ],
+    RouterModule.forChild(appRoutes),
+    FileSaverModule
+  ]
 })
-export class LandingModule { }
+export class LandingModule {}

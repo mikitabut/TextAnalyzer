@@ -1,4 +1,7 @@
-<app-dictionary-list [data]="words"></app-dictionary-list>
+<div class="dictionary-container">
+  <app-dictionary-list [data]="words" *ngIf="this.words.length" (wordRemove)="onRemoveWord($event)"></app-dictionary-list>
+  <div [innerText]="legend" class="legend"></div>
+</div>
 <input type='file' (change)="fileChanged($event)">
 <div *ngIf="this.files && this.files.length">
   <div class="progress-container">

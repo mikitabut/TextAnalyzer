@@ -1,4 +1,11 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  Output,
+  EventEmitter
+} from '@angular/core';
+import * as lex from 'en-lexicon';
 
 @Component({
   selector: 'app-dictionary-list',
@@ -9,8 +16,19 @@ export class DictionaryListComponent implements OnChanges {
   @Input()
   data;
 
+  @Output()
+  wordRemove = new EventEmitter();
+
   words = [];
-  wordMap = new Map<string, { word: string; count: number }>();
+  wordMap = new Map<
+    string,
+    {
+      word: string;
+      tags: string,
+      count: number;
+      fileMeta: { filename: string; text: string }[];
+    }
+  >();
 
   currentOrder = 1;
   selectedSorting: 'Name' | 'Count' = 'Count';
@@ -23,23 +41,40 @@ export class DictionaryListComponent implements OnChanges {
   ngOnChanges(changes) {
     this.words = [];
     this.wordMap.clear();
-    this.data.map(word => this.setWord(word));
+    this.data.map((word: { word: string; filename: string; text: string }) =>
+      this.setWord(word.word, [{ filename: word.filename, text: word.text }])
+    );
     console.log('map setted');
     this.words = Array.from(this.wordMap.keys());
     console.log('words array setted');
 
+    this.updateView();
+  }
+
+  private updateView() {
     this.applySorting();
     console.log('sorting applied');
     this.onCountSelected(this.countOnPage);
     console.log('count selected');
   }
 
-  setWord(word: string) {
+  setWord(
+    word: string,
+    newWordfileMeta: { filename: string; text: string }[],
+    count = 1
+  ) {
     if (this.wordMap.has(word)) {
-      const value = this.wordMap.get(word);
-      this.wordMap.set(word, { word, count: value.count + 1 });
+      const oldWord = this.wordMap.get(word);
+      const files = oldWord.fileMeta;
+      files.push(...newWordfileMeta);
+      this.wordMap.set(word, {
+        word,
+        tags: lex.lexicon[word],
+        count: oldWord.count + count,
+        fileMeta: files
+      });
     } else {
-      this.wordMap.set(word, { word, count: 1 });
+      this.wordMap.set(word, { word, tags: lex.lexicon[word], count: count, fileMeta: newWordfileMeta });
     }
   }
 
@@ -90,13 +125,21 @@ export class DictionaryListComponent implements OnChanges {
 
   onKey(event, word) {
     if (word !== event.target.value) {
-      this.setWord(event.target.value);
-      this.wordMap.set(event.target.value, {
-        word: event.target.value,
-        count: this.wordMap.get(word).count
-      });
+      const oldWord = this.wordMap.get(word) || {
+        fileMeta: [],
+        count: 1
+      };
+      this.setWord(event.target.value, oldWord.fileMeta, oldWord.count);
+      if (oldWord.fileMeta) {
+        this.wordRemove.emit({
+          oldWord: word,
+          word: event.target.value,
+          files: oldWord.fileMeta
+        });
+      }
       this.wordMap.delete(word);
       this.words = Array.from(this.wordMap.keys());
+      this.updateView();
     }
   }
 
@@ -107,7 +150,7 @@ export class DictionaryListComponent implements OnChanges {
       this.words.length / this.countOnPage +
         (this.words.length % this.countOnPage > 0 ? 1 : 0)
     );
-    this.pages = new Array(pageCount).fill(0).map((x, i) => i + 1);
+    this.pages = new Array(pageCount).fill(0).map((_, i) => i + 1);
     this.updateWordsView(1);
   }
 

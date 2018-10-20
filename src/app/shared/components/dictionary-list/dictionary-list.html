@@ -7,7 +7,7 @@
   </span>
 </div>
 <div *ngFor="let word of showedWords" class="word-row">
-  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }}
+  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }} - {{ wordMap.get(word).tags }}
   <div><input (keyup.enter)="onKey($event, word)"></div>
 </div>
 <select (change)="onCountSelected($event.target.value)">
