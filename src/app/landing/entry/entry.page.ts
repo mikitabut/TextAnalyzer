@@ -67,11 +67,11 @@ export class EntryPageComponent {
       this.words = [
         ...this.words,
         ...(this.fileReader.result as string)
-          .split(/[ \!\?\_\-\.\,\;\'\"\]\[\)\(\`\:\’\‘\s\n\t\r\d]/)
+          .split(/[ \!\?\_\-\.\,\;\"\]\[\)\(\`\:\’\‘\s\n\t\r\d]/)
           .map(element => element.trim())
           .filter(word => word.length > 0)
           .map(word => ({
-            word,
+            word: word.toLowerCase(),
             filename: this.currentFile.name,
             text: this.fileReader.result
           }))
