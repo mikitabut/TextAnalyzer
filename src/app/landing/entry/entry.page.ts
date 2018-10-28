@@ -67,7 +67,7 @@ export class EntryPageComponent {
       this.words = [
         ...this.words,
         ...(this.fileReader.result as string)
-          .split(/[ \.\,\n\t\r\d]/)
+          .split(/[ \!\?\_\-\.\,\;\'\"\]\[\)\(\`\:\’\‘\s\n\t\r\d]/)
           .map(element => element.trim())
           .filter(word => word.length > 0)
           .map(word => ({
@@ -112,7 +112,7 @@ export class EntryPageComponent {
   }) {
     wordProperties.files.map(fileProp => {
       const replace = wordProperties.oldWord;
-      const re = new RegExp(replace, 'g');
+      const re = new RegExp(replace, 'gi');
       const newText = fileProp.text.replace(
         re,
         wordProperties.word
