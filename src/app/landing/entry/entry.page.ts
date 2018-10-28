@@ -111,12 +111,13 @@ export class EntryPageComponent {
     files: { filename: string; text: string }[];
   }) {
     wordProperties.files.map(fileProp => {
+      const replace = wordProperties.oldWord;
+      const re = new RegExp(replace, 'g');
       const newText = fileProp.text.replace(
-        wordProperties.oldWord,
+        re,
         wordProperties.word
       );
       this._FileSaverService.saveText(newText, fileProp.filename);
     });
   }
-
 }

@@ -7,8 +7,9 @@
   </span>
 </div>
 <div *ngFor="let word of showedWords" class="word-row">
-  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }} - {{ wordMap.get(word).tags }}
-  <div><input (keyup.enter)="onKey($event, word)"></div>
+  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }} - {{ lexicon[word] }}
+  <div><input (keyup.enter)="onKey($event, word)" placeholder="Change to ..."></div>
+  <div><input (keyup.enter)="onTagsChange($event, word)" placeholder="Change tags to ..."></div>
 </div>
 <select (change)="onCountSelected($event.target.value)">
   <option value="10">10</option>

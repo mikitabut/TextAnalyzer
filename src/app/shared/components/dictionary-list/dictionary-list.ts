@@ -24,7 +24,6 @@ export class DictionaryListComponent implements OnChanges {
     string,
     {
       word: string;
-      tags: string,
       count: number;
       fileMeta: { filename: string; text: string }[];
     }
@@ -37,6 +36,8 @@ export class DictionaryListComponent implements OnChanges {
   countOnPage = 10;
   pages = [];
   showedWords: any[];
+
+  lexicon = lex.lexicon;
 
   ngOnChanges(changes) {
     this.words = [];
@@ -53,9 +54,7 @@ export class DictionaryListComponent implements OnChanges {
 
   private updateView() {
     this.applySorting();
-    console.log('sorting applied');
     this.onCountSelected(this.countOnPage);
-    console.log('count selected');
   }
 
   setWord(
@@ -66,15 +65,18 @@ export class DictionaryListComponent implements OnChanges {
     if (this.wordMap.has(word)) {
       const oldWord = this.wordMap.get(word);
       const files = oldWord.fileMeta;
-      files.push(...newWordfileMeta);
+      for (const fileForWord of newWordfileMeta) {
+        if (files.findIndex(file => file.filename === fileForWord.filename) === -1){
+          files.push(...newWordfileMeta);
+        }
+      }
       this.wordMap.set(word, {
         word,
-        tags: lex.lexicon[word],
         count: oldWord.count + count,
         fileMeta: files
       });
     } else {
-      this.wordMap.set(word, { word, tags: lex.lexicon[word], count: count, fileMeta: newWordfileMeta });
+      this.wordMap.set(word, { word, count: count, fileMeta: newWordfileMeta });
     }
   }
 
@@ -163,5 +165,9 @@ export class DictionaryListComponent implements OnChanges {
       (pageNumber - 1) * this.countOnPage,
       pageNumber * this.countOnPage
     );
+  }
+
+  onTagsChange(event, word: string) {
+    this.lexicon[word] = event.target.value;
   }
 }
