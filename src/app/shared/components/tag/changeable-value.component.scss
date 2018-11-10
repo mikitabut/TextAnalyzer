@@ -1,0 +1,34 @@
+:host {
+  display: block;
+
+  .tag-round {
+    box-shadow: 0 3px 3px rgba(0,0,0,0.5);
+    position: relative;
+    // display: inline;
+    border-radius: 4px;
+    background-color: tomato;
+    padding: 5px;
+    margin: 5px;
+
+    &:hover {
+      cursor: pointer;
+      box-shadow: 0 5px 3px rgba(0,0,0,0.5);
+    }
+  }
+
+  .empty {
+    background-color: green;
+  }
+
+  .edit-panel {
+    display: block;
+    position: absolute;
+    top: -15px;
+    right: -10px;
+    border-radius: 4px;
+  }
+
+  .hidden {
+    display: none;
+  }
+}

@@ -7,9 +7,27 @@
   </span>
 </div>
 <div *ngFor="let word of showedWords" class="word-row">
-  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }} - {{ lexicon[word] }}
-  <div><input (keyup.enter)="onKey($event, word)" placeholder="Change to ..."></div>
-  <div><input (keyup.enter)="onTagsChange($event, word)" placeholder="Change tags to ..."></div>
+  <div class="values-container">
+    Word:
+    <app-changeable-value [value]="word"
+                          (valueChange)="onWordChange(word, $event)"
+                          title="Edit word"
+                          placeholder="Write new word"
+    ></app-changeable-value>
+  </div>
+  <div>
+    Count: {{ wordMap.get(word).count }}
+  </div>
+  <div class="values-container">
+    Tags:
+    <div *ngFor="let tag of wordMap.get(word).tags">
+      <app-changeable-value [value]="tag"
+                            (valueChange)="onTagsChange(tag, word, $event)"
+                            [title]="tag === '(EMPTY)'?'Tap to write new value':'Edit tag'"
+                            placeholder="Write new tag"
+      ></app-changeable-value>
+    </div>
+  </div>
 </div>
 <select (change)="onCountSelected($event.target.value)">
   <option value="10">10</option>

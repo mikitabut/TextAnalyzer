@@ -1,1 +1,38 @@
 /* You can add global styles to this file, and also import other style files */
+
+@font-face {
+  font-family: 'TA_iconic_font';
+  src: url('/assets/fonts/icomoon.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^='icon-'],
+[class*=' icon-'] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+  font-family: 'TA_iconic_font' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-ok::before {
+  content: '\f00c';
+}
+.icon-trash::before {
+  content: '\f014';
+}
+.icon-cancel::before {
+  content: '\f00d';
+}
+.icon-edit::before {
+  content: '\f044';
+}
