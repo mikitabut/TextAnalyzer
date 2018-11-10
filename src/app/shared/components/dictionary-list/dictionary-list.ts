@@ -17,8 +17,12 @@ export class DictionaryListComponent implements OnChanges {
   @Input()
   data;
 
+  @Input()
+  dictionary: string;
+
   @Output()
   wordRemove = new EventEmitter();
+  @Output() saveDictionary = new EventEmitter();
 
   words = [];
   wordMap = new Map<
@@ -51,10 +55,18 @@ export class DictionaryListComponent implements OnChanges {
 
   ngOnChanges(changes) {
     this.words = [];
-    this.wordMap.clear();
-    this.data.map((word: { word: string; filename: string; text: string }) =>
-      this.setWord(word.word, [{ filename: word.filename, text: word.text }])
-    );
+    if (this.dictionary != null) {
+      const resultMap = new Map();
+      for (const entry of JSON.parse(this.dictionary)) {
+        resultMap.set(entry[0], entry[1]);
+      }
+      this.wordMap = resultMap;
+      // this.dictionary = null;
+    } else {
+      this.data.map((word: { word: string; filename: string; text: string }) =>
+        this.setWord(word.word, [{ filename: word.filename, text: word.text }])
+      );
+    }
     this.words = Array.from(this.wordMap.keys());
 
     this.updateView();
@@ -234,7 +246,7 @@ export class DictionaryListComponent implements OnChanges {
   onAddNewWord() {
     if (!this.wordMap.has(this.newWordValue) && this.newWordValue !== '') {
       this.onNewWordAdding = true;
-      this.newTagsValues = this.newTagValue.split('|');
+      this.newTagsValues = this.newTagValue.split('|').filter(value => value.length > 0);
       this.setWord(this.newWordValue, [], 0);
       this.words = Array.from(this.wordMap.keys());
       this.updateView();
@@ -248,5 +260,18 @@ export class DictionaryListComponent implements OnChanges {
         );
       }
     }
+  }
+
+  onSaveDictionary() {
+    this.saveDictionary.emit(this.wordMap);
+  }
+
+  onSearch(searchPhrase: string) {
+    if(searchPhrase.length === 0) {
+      this.words = Array.from(this.wordMap.keys());
+    } else {
+      this.words = Array.from(this.wordMap.keys()).filter((word: string) => word.includes(searchPhrase));
+    }
+    this.updateView();
   }
 }

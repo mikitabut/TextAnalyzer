@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FileSaverService } from 'ngx-filesaver';
 @Component({
   selector: 'app-entry-page',
@@ -7,8 +7,10 @@ import { FileSaverService } from 'ngx-filesaver';
 })
 export class EntryPageComponent {
   fileReader = new FileReader();
+  dictReader = new FileReader();
 
   words = [];
+  dictionary = '';
   legend = `CC Coord Conjuncn and,but,or
   CD Cardinal number one,two
   DT Determiner the,some
@@ -57,11 +59,12 @@ export class EntryPageComponent {
   files: File[] = [];
   currentLoadProgress = 0;
   currentFile: File;
+  dictFile: any;
 
-  constructor(private _FileSaverService: FileSaverService) {
-    this.fileReader.onload = ev => {
+  constructor(private _FileSaverService: FileSaverService, private cdr: ChangeDetectorRef) {
+    this.fileReader.onload = () => {
+      this.dictionary = null;
       this.words = [
-        ...this.words,
         ...(this.fileReader.result as string)
           .split(/[ \!\?\_\-\.\,\;\"\]\[\)\(\`\:\’\‘\s\n\t\r\d]/)
           .map(element => element.trim())
@@ -73,11 +76,21 @@ export class EntryPageComponent {
           }))
       ];
     };
+    this.dictReader.onload = () => {
+      this.dictionary = this.dictReader.result as string;
+      this.onClearLoadedTexts();
+      this.cdr.detectChanges();
+    };
   }
 
   fileChanged(e) {
     this.files = e.target.files;
     this.uploadDocuments();
+  }
+
+  fileDictChanged(e) {
+    this.dictFile = e.target.files[0];
+    this.uploadDictDocument();
   }
 
   uploadDocuments() {
@@ -88,6 +101,9 @@ export class EntryPageComponent {
       this.fileReader.readAsText(currentFile);
       i++;
     }
+  }
+  uploadDictDocument() {
+    this.dictReader.readAsText(this.dictFile);
   }
 
   onClearLoadedTexts() {
@@ -104,11 +120,13 @@ export class EntryPageComponent {
     wordProperties.files.map(fileProp => {
       const replace = wordProperties.oldWord;
       const re = new RegExp(replace, 'gi');
-      const newText = fileProp.text.replace(
-        re,
-        wordProperties.word
-      );
+      const newText = fileProp.text.replace(re, wordProperties.word);
       this._FileSaverService.saveText(newText, fileProp.filename);
     });
+  }
+
+  onSaveDictionary(obj) {
+    const jsonStr = JSON.stringify(Array.from(obj.entries()));
+    this._FileSaverService.saveText(jsonStr, 'dictionary.dct');
   }
 }
