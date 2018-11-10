@@ -41,6 +41,12 @@ export class DictionaryListComponent implements OnChanges {
   pages = [];
   showedWords: any[];
 
+  newWordValue = '';
+  newTagValue = '';
+  setDefaultTags = false;
+  onNewWordAdding = false;
+  newTagsValues = [];
+
   lexicon = lex.lexicon;
 
   ngOnChanges(changes) {
@@ -49,9 +55,7 @@ export class DictionaryListComponent implements OnChanges {
     this.data.map((word: { word: string; filename: string; text: string }) =>
       this.setWord(word.word, [{ filename: word.filename, text: word.text }])
     );
-    console.log('map setted');
     this.words = Array.from(this.wordMap.keys());
-    console.log('words array setted');
 
     this.updateView();
   }
@@ -83,9 +87,21 @@ export class DictionaryListComponent implements OnChanges {
         tags: oldWord.tags
       });
     } else {
-      let tags = this.lexicon[word] && this.lexicon[word].split('|');
-      if (tags == null) {
-        tags = [];
+      let tags = [];
+      if (
+        !this.onNewWordAdding ||
+        (this.onNewWordAdding && this.setDefaultTags)
+      ) {
+        tags =
+          this.lexicon[word.toLowerCase()] &&
+          this.lexicon[word.toLowerCase()].split('|');
+        if (tags == null) {
+          tags = [];
+        }
+      }
+
+      if (this.onNewWordAdding) {
+        tags.push(...this.newTagsValues);
       }
       tags.push(this.emptyValue);
 
@@ -200,6 +216,37 @@ export class DictionaryListComponent implements OnChanges {
       this.wordMap.delete(word);
       this.words = Array.from(this.wordMap.keys());
       this.updateView();
+    }
+  }
+
+  onWordInputChange(value: string) {
+    this.newWordValue = value;
+  }
+
+  onTagsInputChange(value: string) {
+    this.newTagValue = value;
+  }
+
+  onSetDefaultCheckboxInputChange() {
+    this.setDefaultTags = !this.setDefaultTags;
+  }
+
+  onAddNewWord() {
+    if (!this.wordMap.has(this.newWordValue) && this.newWordValue !== '') {
+      this.onNewWordAdding = true;
+      this.newTagsValues = this.newTagValue.split('|');
+      this.setWord(this.newWordValue, [], 0);
+      this.words = Array.from(this.wordMap.keys());
+      this.updateView();
+      this.onNewWordAdding = false;
+    } else {
+      if (this.wordMap.has(this.newWordValue)) {
+        alert(
+          'Can\'t add \'' +
+            this.newWordValue +
+            '\' as word, because this word existing!'
+        );
+      }
     }
   }
 }
