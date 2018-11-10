@@ -59,10 +59,6 @@ export class EntryPageComponent {
   currentFile: File;
 
   constructor(private _FileSaverService: FileSaverService) {
-    this.fileReader.onprogress = ev => {
-      this.currentLoadProgress = (ev.loaded / ev.total) * 100;
-    };
-
     this.fileReader.onload = ev => {
       this.words = [
         ...this.words,
@@ -76,7 +72,6 @@ export class EntryPageComponent {
             text: this.fileReader.result
           }))
       ];
-      console.log(this.words);
     };
   }
 
@@ -95,13 +90,9 @@ export class EntryPageComponent {
     }
   }
 
-  onClearLoadQueue() {
-    this.fileReader.abort();
-    this.files = null;
-  }
-
   onClearLoadedTexts() {
-    this.files = null;
+    this.files = [];
+    this.currentFile = undefined;
     this.words = [];
   }
 

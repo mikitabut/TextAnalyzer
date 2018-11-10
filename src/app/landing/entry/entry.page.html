@@ -4,12 +4,7 @@
 </div>
 <input type='file' (change)="fileChanged($event)">
 <div *ngIf="this.files && this.files.length">
-  <div class="progress-container">
-    <div class="text-block">{{ 'Loaded ' + currentLoadProgress + '%' }}</div>
-    <div class="progress-bar" [ngStyle]="{'width': currentProgress + '%'}"></div>
-  </div>
   <div>
-    <input type="button" value="Clear load queue" (click)="onClearLoadQueue()">
     <input type="button" value="Clear loaded texts and words" (click)="onClearLoadedTexts()">
   </div>
 </div>
