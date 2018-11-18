@@ -1,21 +1,93 @@
-<div>Sort
-  <span (click)="sortOrderChange();">
-    {{currentOrder === 1? '↑': '↓'}}
-  </span> by
-  <span (click)="sortChange();">
-    {{selectedSorting}}
-  </span>
+<div class="content-block">
+  <div>
+    <div class="search-row">
+      Search word
+      <div>
+          <input
+          type="text"
+          (input)="onSearch($event.target.value)"
+        />
+      </div>
+    </div>
+    <div class="sort-row">
+      Sort
+      <span (click)="sortOrderChange()" class="sort-param">
+        {{ currentOrder === 1 ? '↑' : '↓' }}
+      </span>
+      by
+      <span (click)="sortChange()" class="sort-param">
+        {{ selectedSorting }}
+      </span>
+    </div>
+    <div *ngFor="let word of showedWords" class="word-row">
+      <div class="values-container">
+        Word:
+        <app-changeable-value
+          [value]="word"
+          (valueChange)="onWordChange(word, $event)"
+          title="Edit word"
+          placeholder="Write new word"
+        ></app-changeable-value>
+      </div>
+      <div>Count: {{ wordMap.get(word).count }}</div>
+      <div class="values-container">
+        Tags:
+        <div *ngFor="let tag of wordMap.get(word).tags">
+          <app-changeable-value
+            [value]="tag"
+            (valueChange)="onTagsChange(tag, word, $event)"
+            [title]="tag === '(EMPTY)' ? 'Tap to write new value' : 'Edit tag'"
+            placeholder="Write new tag"
+          ></app-changeable-value>
+        </div>
+      </div>
+    </div>
+    <div>
+      Select words on page:
+      <select (change)="onCountSelected($event.target.value)">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="40">40</option>
+      </select>
+    </div>
+    <div>
+      Select page:
+      <select (change)="onPageSelected($event.target.value)">
+        <option *ngFor="let page of pages" [value]="page">{{ page }}</option>
+      </select>
+    </div>
+  </div>
+  <div>
+    <div class="new-word-form">
+      <div class="form-group">
+        <div for="tags">Word</div>
+        <input
+          type="text"
+          id="word"
+          (keyup)="onWordInputChange($event.target.value)"
+        />
+      </div>
+
+      <div class="form-group">
+        <div>Tags(Separate them by '|')</div>
+        <input
+          type="text"
+          id="tags"
+          (keyup)="onTagsInputChange($event.target.value)"
+        />
+        <div>
+          <input
+            type="checkbox"
+            (click)="onSetDefaultCheckboxInputChange($event.target.value)"
+          />
+          Add default tags
+        </div>
+      </div>
+
+      <button (click)="onAddNewWord()">Add new word</button>
+    </div>
+    <div>
+      <button (click)="onSaveDictionary()">Save dictionary</button>
+    </div>
+  </div>
 </div>
-<div *ngFor="let word of showedWords" class="word-row">
-  {{ wordMap.get(word).word }} - {{ wordMap.get(word).count }} - {{ lexicon[word] }}
-  <div><input (keyup.enter)="onKey($event, word)" placeholder="Change to ..."></div>
-  <div><input (keyup.enter)="onTagsChange($event, word)" placeholder="Change tags to ..."></div>
-</div>
-<select (change)="onCountSelected($event.target.value)">
-  <option value="10">10</option>
-  <option value="20">20</option>
-  <option value="40">40</option>
-</select>
-<select (change)="onPageSelected($event.target.value)">
-  <option *ngFor="let page of this.pages" [value]="page">{{ page }}</option>
-</select>

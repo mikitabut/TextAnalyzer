@@ -1,0 +1,25 @@
+<div class="tag-round" [class.empty]="currentValue === emptyValue">
+  <div
+    (click)="onClick()"
+    *ngIf="!editStarted"
+    class="inner-text"
+    [title]="title"
+  >
+    {{ currentValue }}
+  </div>
+  <input
+    #input
+    *ngIf="editStarted"
+    [placeholder]="placeholder"
+    [value]="currentValue === emptyValue ? '' : currentValue"
+    (keyup)="onCurrentTagChange(input.value)"
+  />
+  <app-changeable-value-editor
+    class="edit-panel"
+    [class.hidden]="!showContextMenu"
+    (startEdit)="onStartEdit()"
+    (save)="onSave()"
+    (remove)="onRemove()"
+    (resetChanges)="onResetChanges()"
+  ></app-changeable-value-editor>
+</div>

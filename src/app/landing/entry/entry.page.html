@@ -1,15 +1,24 @@
-<div class="dictionary-container" *ngIf="this.words.length">
-  <app-dictionary-list [data]="words" (wordRemove)="onRemoveWord($event)"></app-dictionary-list>
+<div class="dictionary-container" *ngIf="this.words.length || this.dictionary">
+  <app-dictionary-list
+    [data]="words"
+    [dictionary]="dictionary"
+    (wordRemove)="onRemoveWord($event)"
+    (saveDictionary)="onSaveDictionary($event)"
+  ></app-dictionary-list>
   <div [innerText]="legend" class="legend"></div>
 </div>
-<input type='file' (change)="fileChanged($event)">
+<div>
+  Загрузить текст----<input type="file" (change)="fileChanged($event)" />
+</div>
+<div>
+  Загрузить словарь-<input type="file" (change)="fileDictChanged($event)" />
+</div>
 <div *ngIf="this.files && this.files.length">
-  <div class="progress-container">
-    <div class="text-block">{{ 'Loaded ' + currentLoadProgress + '%' }}</div>
-    <div class="progress-bar" [ngStyle]="{'width': currentProgress + '%'}"></div>
-  </div>
   <div>
-    <input type="button" value="Clear load queue" (click)="onClearLoadQueue()">
-    <input type="button" value="Clear loaded texts and words" (click)="onClearLoadedTexts()">
+    <input
+      type="button"
+      value="Clear loaded texts and words"
+      (click)="onClearLoadedTexts()"
+    />
   </div>
 </div>

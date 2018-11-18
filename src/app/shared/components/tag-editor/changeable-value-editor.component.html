@@ -1,0 +1,4 @@
+<span class="icon-ok btn" *ngIf="editStarted" (click)="onSave()"></span>
+<span class="icon-edit btn" *ngIf="!editStarted" (click)="onStartEdit()"></span>
+<span class="icon-trash btn" (click)="onRemove()"></span>
+<span class="icon-cancel btn" (click)="onResetChanges()"></span>
