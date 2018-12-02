@@ -1,5 +1,4 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { emptyValue } from '../../constants/common';
 
 @Component({
   selector: 'app-changeable-value',
@@ -8,12 +7,13 @@ import { emptyValue } from '../../constants/common';
 })
 export class ChangeableValueComponent implements OnInit {
   @Input() value: string;
+  @Input() changeable = true;
   @Input() title = 'Some title';
   @Input() placeholder = 'Set new value';
 
   @Output() valueChange = new EventEmitter();
 
-  emptyValue = emptyValue;
+  emptyValue = '(EMPTY)';
   currentValue: string;
   showContextMenu = false;
   editStarted = false;
@@ -35,7 +35,7 @@ export class ChangeableValueComponent implements OnInit {
   onSave() {
     if (this.currentValue !== this.value) {
       this.valueChange.emit(this.currentValue);
-      this.currentValue = this.value;
+      this.value = this.currentValue;
     }
     this.showContextMenu = !this.showContextMenu;
     this.editStarted = false;

@@ -6,7 +6,8 @@ import {
   EventEmitter
 } from '@angular/core';
 import * as lex from 'en-lexicon';
-import { emptyValue } from '../../constants/common';
+
+declare var nlp: any;
 
 @Component({
   selector: 'app-dictionary-list',
@@ -32,13 +33,16 @@ export class DictionaryListComponent implements OnChanges {
       count: number;
       fileMeta: { filename: string; text: string }[];
       tags: string[];
+      canonConn?: string;
+      canonChildrens: string[];
+      isCanon: boolean;
     }
   >();
 
   currentOrder = 1;
   selectedSorting: 'Name' | 'Count' = 'Count';
 
-  emptyValue = emptyValue;
+  emptyValue = '(EMPTY)';
 
   currentPage = 1;
   countOnPage = 10;
@@ -96,34 +100,141 @@ export class DictionaryListComponent implements OnChanges {
         word,
         count: oldWord.count + count,
         fileMeta: files,
-        tags: oldWord.tags
+        tags: oldWord.tags,
+        canonConn: oldWord.canonConn,
+        canonChildrens: oldWord.canonChildrens,
+        isCanon: oldWord.isCanon
       });
     } else {
       let tags = [];
-      if (
-        !this.onNewWordAdding ||
-        (this.onNewWordAdding && this.setDefaultTags)
-      ) {
-        tags =
-          this.lexicon[word.toLowerCase()] &&
-          this.lexicon[word.toLowerCase()].split('|');
-        if (tags == null) {
-          tags = [];
-        }
-      }
+      let canon;
+      let isCanon = false;
 
       if (this.onNewWordAdding) {
-        tags.push(...this.newTagsValues);
+        tags = this.getTags(word, this.newTagsValues, this.setDefaultTags);
+        if (this.setDefaultTags) {
+          canon = this.updateCanonForm(word);
+          isCanon = canon === word;
+        }
+      } else {
+        tags = this.getTags(word, this.newTagsValues);
+        canon = this.updateCanonForm(word);
+        isCanon = canon === word;
       }
-      tags.push(this.emptyValue);
 
-      this.wordMap.set(word, {
-        word,
-        count: count,
-        fileMeta: newWordfileMeta,
-        tags
+      if (isCanon) {
+        const canonValue = this.wordMap.get(word);
+        this.wordMap.set(word, {
+          ...canonValue,
+          count: count,
+          fileMeta: newWordfileMeta
+        });
+      } else {
+        this.wordMap.set(word, {
+          word,
+          count: count,
+          fileMeta: newWordfileMeta,
+          tags,
+          canonChildrens: [],
+          isCanon,
+          canonConn: canon || this.emptyValue
+        });
+      }
+    }
+  }
+
+  private updateCanonForm(word: string, canonWord?: string) {
+    const canonChildrens = [];
+
+    let canon;
+
+    if (!canonWord) {
+      canon = this.getCanonWord(word);
+    } else {
+      canon = canonWord;
+    }
+    if (canon !== word) {
+      canonChildrens.push(word);
+    }
+    if (!this.wordMap.has(canon)) {
+      this.wordMap.set(canon, {
+        word: canon,
+        count: 0,
+        fileMeta: [],
+        tags: this.getTags(canon),
+        canonChildrens,
+        isCanon: true,
+        canonConn: this.emptyValue
+      });
+    } else {
+      const oldCanon = this.wordMap.get(canon);
+      canonChildrens.push(
+        ...oldCanon.canonChildrens.filter(
+          child => !canonChildrens.includes(child)
+        )
+      );
+      this.wordMap.set(canon, {
+        ...oldCanon,
+        canonChildrens
       });
     }
+
+    return canon;
+  }
+
+  getCanonWord(word: string): any {
+    const analyzedWord = nlp(word);
+
+    if (analyzedWord.out('tags').includes('Noun')) {
+      return analyzedWord
+        .normalize({
+          whitespace: true,
+          case: true,
+          numbers: true,
+          punctuation: true,
+          unicode: true,
+          contractions: true,
+          acronyms: true,
+          parentheses: true,
+          possessives: true,
+          plurals: true,
+          honorifics: true
+        })
+        .out('text');
+    }
+    return nlp(word)
+      .normalize({
+        whitespace: true,
+        case: true,
+        numbers: true,
+        punctuation: true,
+        unicode: true,
+        contractions: true,
+        acronyms: true,
+        parentheses: true,
+        possessives: true,
+        verbs: true,
+        honorifics: true
+      })
+      .out('text');
+  }
+
+  getTags(
+    word: string,
+    newTagsValues: string[] = [],
+    isDefaultTagsAdding = true
+  ) {
+    const tags = [];
+
+    if (isDefaultTagsAdding) {
+      tags.push(...nlp(word).out('tags')[0].tags);
+    }
+    if (newTagsValues.length !== 0) {
+      tags.push(newTagsValues);
+    }
+    tags.push(this.emptyValue);
+
+    return tags;
   }
 
   sortByName() {
@@ -192,21 +303,55 @@ export class DictionaryListComponent implements OnChanges {
   }
 
   onTagsChange(tag: string, word: string, newTagValue: string) {
-    const resultTags = [
-      ...this.wordMap.get(word).tags.filter(value => value !== tag)
-    ];
+    const oldWord = this.wordMap.get(word);
+    const resultTags = [...oldWord.tags.filter(value => value !== tag)];
     if (!resultTags.includes(newTagValue)) {
       if (newTagValue !== undefined && newTagValue !== '') {
         resultTags.push(newTagValue);
+        oldWord.canonChildrens.map(child => {
+          const childWord = this.wordMap.get(child);
+          if (childWord && childWord.tags.includes(tag)) {
+            childWord.tags = [
+              ...childWord.tags.filter(childTag => childTag !== tag),
+              newTagValue
+            ];
+          }
+        });
       } else if (tag === this.emptyValue) {
         resultTags.push(this.emptyValue);
+      } else if (newTagValue === undefined || newTagValue === '') {
+        oldWord.canonChildrens.map(child => {
+          const childWord = this.wordMap.get(child);
+          if (childWord && childWord.tags.includes(tag)) {
+            childWord.tags = childWord.tags.filter(
+              childTag => childTag !== tag
+            );
+          }
+        });
       }
     }
 
     if (!resultTags.includes(this.emptyValue)) {
       resultTags.push(this.emptyValue);
     }
-    this.wordMap.get(word).tags = resultTags;
+    oldWord.tags = resultTags;
+  }
+
+  onCanonChange(word: string, newCanonValue: string) {
+    // alert('Be aware - all your tags of this word removed. Rewrite it according your purposes');
+    const oldWord = this.wordMap.get(word);
+    this.wordMap.delete(word);
+    this.wordMap.set(word, {
+      ...oldWord,
+      tags: [this.emptyValue],
+      canonConn: newCanonValue,
+      isCanon: newCanonValue === word
+    });
+    this.updateCanonForm(word, newCanonValue);
+
+    this.words = Array.from(this.wordMap.keys());
+
+    this.updateView();
   }
 
   onWordChange(word: string, newWordValue: string) {
@@ -246,10 +391,7 @@ export class DictionaryListComponent implements OnChanges {
   onAddNewWord() {
     if (!this.wordMap.has(this.newWordValue) && this.newWordValue !== '') {
       this.onNewWordAdding = true;
-      this.newTagsValues = this.newTagValue.split('|').filter(value => value.length > 0);
-      this.setWord(this.newWordValue, [], 0);
-      this.words = Array.from(this.wordMap.keys());
-      this.updateView();
+      this.addNewWord(this.newWordValue, this.newTagValue);
       this.onNewWordAdding = false;
     } else {
       if (this.wordMap.has(this.newWordValue)) {
@@ -262,15 +404,26 @@ export class DictionaryListComponent implements OnChanges {
     }
   }
 
+  private addNewWord(initialWord: string, initialTags: string) {
+    this.newTagsValues = initialTags
+      .split('|')
+      .filter(value => value.length > 0);
+    this.setWord(initialWord, [], 0);
+    this.words = Array.from(this.wordMap.keys());
+    this.updateView();
+  }
+
   onSaveDictionary() {
     this.saveDictionary.emit(this.wordMap);
   }
 
   onSearch(searchPhrase: string) {
-    if(searchPhrase.length === 0) {
+    if (searchPhrase.length === 0) {
       this.words = Array.from(this.wordMap.keys());
     } else {
-      this.words = Array.from(this.wordMap.keys()).filter((word: string) => word.includes(searchPhrase));
+      this.words = Array.from(this.wordMap.keys()).filter((word: string) =>
+        word.includes(searchPhrase)
+      );
     }
     this.updateView();
   }

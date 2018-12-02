@@ -19,7 +19,11 @@
         {{ selectedSorting }}
       </span>
     </div>
-    <div *ngFor="let word of showedWords" class="word-row">
+    <div *ngFor="let word of showedWords"
+          class="word-row"
+          [ngClass]="{'canon-form': wordMap.get(word).canonConn === emptyValue}"
+    >
+    <ng-container *ngIf="wordMap.get(word) as wordMapped">
       <div class="values-container">
         Word:
         <app-changeable-value
@@ -29,10 +33,32 @@
           placeholder="Write new word"
         ></app-changeable-value>
       </div>
-      <div>Count: {{ wordMap.get(word).count }}</div>
+      <div class="values-container">
+        Canon:
+        <ng-container>
+          <app-changeable-value
+            [value]="wordMapped.canonConn"
+            (valueChange)="onCanonChange(word, $event)"
+            title="Click to open canon form"
+            placeholder="Write new canon form"
+          ></app-changeable-value>
+        </ng-container>
+      </div>
+      <div class="values-container" *ngIf="wordMapped.isCanon && wordMapped.canonChildrens.length">
+        Derived forms:
+        <div *ngFor="let derivedForm of wordMapped.canonChildrens">
+          <app-changeable-value
+            [value]="derivedForm"
+            [changeable]="false"
+            title="Click to rewrite"
+            placeholder="Write new derived form"
+          ></app-changeable-value>
+        </div>
+      </div>
+      <div>Count: {{ wordMapped.count }}</div>
       <div class="values-container">
         Tags:
-        <div *ngFor="let tag of wordMap.get(word).tags">
+        <div *ngFor="let tag of wordMapped.tags">
           <app-changeable-value
             [value]="tag"
             (valueChange)="onTagsChange(tag, word, $event)"
@@ -41,6 +67,7 @@
           ></app-changeable-value>
         </div>
       </div>
+    </ng-container>
     </div>
     <div>
       Select words on page:
