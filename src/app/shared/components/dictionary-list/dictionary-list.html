@@ -41,6 +41,15 @@
           ></app-changeable-value>
         </div>
       </div>
+      <div class="values-container" *ngIf="wordMap.get(word).canonConn as canon">
+        Canon:
+        <app-changeable-value
+          [value]="canon"
+          (valueChange)="onCanonChange(canon, $event)"
+          title="Click to open canon form"
+          placeholder="Write new tag"
+        ></app-changeable-value>
+      </div>
     </div>
     <div>
       Select words on page:

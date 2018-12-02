@@ -6,7 +6,11 @@ import {
   EventEmitter
 } from '@angular/core';
 import * as lex from 'en-lexicon';
+
 import { emptyValue } from '../../constants/common';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+
+declare var nlp: any;
 
 @Component({
   selector: 'app-dictionary-list',
@@ -32,6 +36,8 @@ export class DictionaryListComponent implements OnChanges {
       count: number;
       fileMeta: { filename: string; text: string }[];
       tags: string[];
+      canonConn?: string;
+      canonChildrens: string[];
     }
   >();
 
@@ -96,7 +102,9 @@ export class DictionaryListComponent implements OnChanges {
         word,
         count: oldWord.count + count,
         fileMeta: files,
-        tags: oldWord.tags
+        tags: oldWord.tags,
+        canonConn: oldWord.canonConn,
+        canonChildrens: oldWord.canonChildrens,
       });
     } else {
       let tags = [];
@@ -104,9 +112,7 @@ export class DictionaryListComponent implements OnChanges {
         !this.onNewWordAdding ||
         (this.onNewWordAdding && this.setDefaultTags)
       ) {
-        tags =
-          this.lexicon[word.toLowerCase()] &&
-          this.lexicon[word.toLowerCase()].split('|');
+        tags = this.getTags(word);
         if (tags == null) {
           tags = [];
         }
@@ -117,13 +123,70 @@ export class DictionaryListComponent implements OnChanges {
       }
       tags.push(this.emptyValue);
 
+      const canon = this.getCanonWord(word);
+      if (!this.wordMap.has(canon)) {
+        this.wordMap.set(canon, {
+          word: canon,
+          count: 0,
+          fileMeta: [],
+          tags: this.getTags(canon),
+          canonChildrens: [word],
+        });
+      } else {
+        const oldCanon = this.wordMap.get(canon);
+        this.wordMap.set(canon, {...oldCanon, canonChildrens: [...oldCanon.canonChildrens, word]});
+      }
+
       this.wordMap.set(word, {
         word,
         count: count,
         fileMeta: newWordfileMeta,
-        tags
+        tags,
+        canonChildrens: [],
+        canonConn: canon === word ? undefined : canon,
       });
     }
+  }
+
+  getCanonWord(word: string): any {
+    const analyzedWord = nlp(word);
+
+    if (analyzedWord.out('tags').includes('Noun')) {
+      return analyzedWord
+        .normalize({
+          whitespace: true,
+          case: true,
+          numbers: true,
+          punctuation: true,
+          unicode: true,
+          contractions: true,
+          acronyms: true,
+          parentheses: true,
+          possessives: true,
+          plurals: true,
+          honorifics: true
+        })
+        .out('text');
+    }
+    return nlp(word)
+      .normalize({
+        whitespace: true,
+        case: true,
+        numbers: true,
+        punctuation: true,
+        unicode: true,
+        contractions: true,
+        acronyms: true,
+        parentheses: true,
+        possessives: true,
+        verbs: true,
+        honorifics: true
+      })
+      .out('text');
+  }
+
+  getTags(word: string) {
+    return nlp(word).out('tags')[0].tags;
   }
 
   sortByName() {
@@ -246,10 +309,7 @@ export class DictionaryListComponent implements OnChanges {
   onAddNewWord() {
     if (!this.wordMap.has(this.newWordValue) && this.newWordValue !== '') {
       this.onNewWordAdding = true;
-      this.newTagsValues = this.newTagValue.split('|').filter(value => value.length > 0);
-      this.setWord(this.newWordValue, [], 0);
-      this.words = Array.from(this.wordMap.keys());
-      this.updateView();
+      this.addNewWord(this.newWordValue, this.newTagValue);
       this.onNewWordAdding = false;
     } else {
       if (this.wordMap.has(this.newWordValue)) {
@@ -262,15 +322,26 @@ export class DictionaryListComponent implements OnChanges {
     }
   }
 
+  private addNewWord(initialWord: string, initialTags: string) {
+    this.newTagsValues = initialTags
+      .split('|')
+      .filter(value => value.length > 0);
+    this.setWord(initialWord, [], 0);
+    this.words = Array.from(this.wordMap.keys());
+    this.updateView();
+  }
+
   onSaveDictionary() {
     this.saveDictionary.emit(this.wordMap);
   }
 
   onSearch(searchPhrase: string) {
-    if(searchPhrase.length === 0) {
+    if (searchPhrase.length === 0) {
       this.words = Array.from(this.wordMap.keys());
     } else {
-      this.words = Array.from(this.wordMap.keys()).filter((word: string) => word.includes(searchPhrase));
+      this.words = Array.from(this.wordMap.keys()).filter((word: string) =>
+        word.includes(searchPhrase)
+      );
     }
     this.updateView();
   }
