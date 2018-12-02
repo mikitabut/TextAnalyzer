@@ -20,7 +20,6 @@
     "@angular/platform-browser": "^6.1.0",
     "@angular/platform-browser-dynamic": "^6.1.0",
     "@angular/router": "^6.1.0",
-    "compromise": "^11.12.3",
     "core-js": "^2.5.4",
     "en-lexicon": "^1.0.11",
     "file-saver": "^2.0.0-rc.4",
