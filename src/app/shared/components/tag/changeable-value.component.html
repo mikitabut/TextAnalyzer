@@ -16,6 +16,7 @@
   />
   <app-changeable-value-editor
     class="edit-panel"
+    *ngIf="changeable"
     [class.hidden]="!showContextMenu"
     (startEdit)="onStartEdit()"
     (save)="onSave()"

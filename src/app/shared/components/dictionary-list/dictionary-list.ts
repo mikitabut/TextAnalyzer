@@ -9,6 +9,7 @@ import * as lex from 'en-lexicon';
 
 import { emptyValue } from '../../constants/common';
 import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+import { empty } from 'rxjs';
 
 declare var nlp: any;
 
@@ -38,6 +39,7 @@ export class DictionaryListComponent implements OnChanges {
       tags: string[];
       canonConn?: string;
       canonChildrens: string[];
+      isCanon: boolean;
     }
   >();
 
@@ -105,47 +107,79 @@ export class DictionaryListComponent implements OnChanges {
         tags: oldWord.tags,
         canonConn: oldWord.canonConn,
         canonChildrens: oldWord.canonChildrens,
+        isCanon: oldWord.isCanon,
       });
     } else {
       let tags = [];
-      if (
-        !this.onNewWordAdding ||
-        (this.onNewWordAdding && this.setDefaultTags)
-      ) {
-        tags = this.getTags(word);
-        if (tags == null) {
-          tags = [];
-        }
-      }
+      let canon;
+      let isCanon = false;
 
       if (this.onNewWordAdding) {
-        tags.push(...this.newTagsValues);
+        tags = this.getTags(word, this.newTagsValues, this.setDefaultTags);
+        if (this.setDefaultTags) {
+          canon = this.updateCanonForm(word);
+          isCanon = canon === word;
+        }
+      } else {
+        tags = this.getTags(word, this.newTagsValues);
+        canon = this.updateCanonForm(word);
+        isCanon = canon === word;
       }
-      tags.push(this.emptyValue);
 
-      const canon = this.getCanonWord(word);
-      if (!this.wordMap.has(canon)) {
-        this.wordMap.set(canon, {
-          word: canon,
-          count: 0,
-          fileMeta: [],
-          tags: this.getTags(canon),
-          canonChildrens: [word],
+      if (isCanon) {
+        const canonValue = this.wordMap.get(word);
+        this.wordMap.set(word, {
+          ...canonValue,
+          count: count,
+          fileMeta: newWordfileMeta,
         });
       } else {
-        const oldCanon = this.wordMap.get(canon);
-        this.wordMap.set(canon, {...oldCanon, canonChildrens: [...oldCanon.canonChildrens, word]});
+        this.wordMap.set(word, {
+          word,
+          count: count,
+          fileMeta: newWordfileMeta,
+          tags,
+          canonChildrens: [],
+          isCanon,
+          canonConn: canon || emptyValue,
+        });
       }
+    }
+  }
 
-      this.wordMap.set(word, {
-        word,
-        count: count,
-        fileMeta: newWordfileMeta,
-        tags,
-        canonChildrens: [],
-        canonConn: canon === word ? undefined : canon,
+  private updateCanonForm(word: string, canonWord?: string) {
+    const canonChildrens = [];
+
+    let canon;
+
+    if(!canonWord) {
+      canon = this.getCanonWord(word);
+    } else {
+      canon = canonWord;
+    }
+    if(canon !== word){
+      canonChildrens.push(word);
+    }
+    if (!this.wordMap.has(canon)) {
+      this.wordMap.set(canon, {
+        word: canon,
+        count: 0,
+        fileMeta: [],
+        tags: this.getTags(canon),
+        canonChildrens,
+        isCanon: true,
+        canonConn: emptyValue,
+      });
+    } else {
+      const oldCanon = this.wordMap.get(canon);
+      canonChildrens.push(...oldCanon.canonChildrens.filter(child => !canonChildrens.includes(child)));
+      this.wordMap.set(canon, {
+        ...oldCanon,
+        canonChildrens,
       });
     }
+
+    return canon;
   }
 
   getCanonWord(word: string): any {
@@ -185,8 +219,18 @@ export class DictionaryListComponent implements OnChanges {
       .out('text');
   }
 
-  getTags(word: string) {
-    return nlp(word).out('tags')[0].tags;
+  getTags(word: string, newTagsValues: string[] = [], isDefaultTagsAdding = true) {
+    const tags = [];
+
+    if (isDefaultTagsAdding) {
+      tags.push(...nlp(word).out('tags')[0].tags);
+    }
+    if (newTagsValues.length !== 0) {
+      tags.push(newTagsValues);
+    }
+    tags.push(emptyValue);
+
+    return tags;
   }
 
   sortByName() {
@@ -255,21 +299,56 @@ export class DictionaryListComponent implements OnChanges {
   }
 
   onTagsChange(tag: string, word: string, newTagValue: string) {
+    const oldWord = this.wordMap.get(word);
     const resultTags = [
-      ...this.wordMap.get(word).tags.filter(value => value !== tag)
+      ...oldWord.tags.filter(value => value !== tag)
     ];
     if (!resultTags.includes(newTagValue)) {
       if (newTagValue !== undefined && newTagValue !== '') {
         resultTags.push(newTagValue);
+        oldWord.canonChildrens.map(child => {
+          const childWord = this.wordMap.get(child);
+          if(childWord && childWord.tags.includes(tag)){
+            childWord.tags = [
+              ...childWord.tags.filter(childTag => childTag !== tag),
+              newTagValue,
+            ];
+          }
+        });
       } else if (tag === this.emptyValue) {
         resultTags.push(this.emptyValue);
+      } else if(newTagValue === undefined || newTagValue === '') {
+        oldWord.canonChildrens.map(child => {
+          const childWord = this.wordMap.get(child);
+          if(childWord && childWord.tags.includes(tag)){
+            childWord.tags = childWord.tags.filter(childTag => childTag !== tag);
+          }
+        });
       }
     }
 
     if (!resultTags.includes(this.emptyValue)) {
       resultTags.push(this.emptyValue);
     }
-    this.wordMap.get(word).tags = resultTags;
+    oldWord.tags = resultTags;
+  }
+
+  onCanonChange(word: string, newCanonValue: string) {
+    // alert('Be aware - all your tags of this word removed. Rewrite it according your purposes');
+    const oldWord = this.wordMap.get(word);
+    this.wordMap.delete(word);
+    this.wordMap.set(word,{
+      ...oldWord,
+      tags: [emptyValue],
+      canonConn: newCanonValue,
+      isCanon: newCanonValue === word,
+    });
+    this.updateCanonForm(word, newCanonValue);
+
+    this.words = Array.from(this.wordMap.keys());
+
+    this.updateView();
+
   }
 
   onWordChange(word: string, newWordValue: string) {

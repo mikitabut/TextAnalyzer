@@ -8,6 +8,7 @@ import { emptyValue } from '../../constants/common';
 })
 export class ChangeableValueComponent implements OnInit {
   @Input() value: string;
+  @Input() changeable = true;
   @Input() title = 'Some title';
   @Input() placeholder = 'Set new value';
 
@@ -35,7 +36,7 @@ export class ChangeableValueComponent implements OnInit {
   onSave() {
     if (this.currentValue !== this.value) {
       this.valueChange.emit(this.currentValue);
-      this.currentValue = this.value;
+      this.value = this.currentValue;
     }
     this.showContextMenu = !this.showContextMenu;
     this.editStarted = false;
