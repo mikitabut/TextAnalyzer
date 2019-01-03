@@ -26,18 +26,19 @@ export class DictionaryListComponent implements OnChanges {
   @Output() saveDictionary = new EventEmitter();
 
   words = [];
-  wordMap = new Map<
-    string,
-    {
-      word: string;
-      count: number;
-      fileMeta: { filename: string; text: string }[];
-      tags: string[];
-      canonConn?: string;
-      canonChildrens: string[];
-      isCanon: boolean;
-    }
-  >();
+  @Input() wordMap;
+  // wordMap = new Map<
+  //   string,
+  //   {
+  //     word: string;
+  //     count: number;
+  //     fileMeta: { filename: string; text: string }[];
+  //     tags: string[];
+  //     canonConn?: string;
+  //     canonChildrens: string[];
+  //     isCanon: boolean;
+  //   }
+  // >();
 
   currentOrder = 1;
   selectedSorting: 'Name' | 'Count' = 'Count';

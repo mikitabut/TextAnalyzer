@@ -1,0 +1,41 @@
+<div *ngIf="processedSentences && processedSentences.length" >
+  <div class="container">
+    <div>
+      <button (click)="onSaveText()">Save text</button>
+      <button (click)="goNextSentence()">Next sentence</button>
+      Current sentences: {{currentSentenceNumber}}-{{currentSentenceNumber + (currentSentenceNumber + 9)%processedSentences.length % 10}}
+      <div class="raskraska-container sentence-container">
+        <ng-container *ngFor="let tenWords of processedSentences.slice(currentSentenceNumber, currentSentenceNumber+10); let partIndex">
+          <ng-container *ngFor="let word of tenWords; let wordIndex">
+            <app-text-tagged-word
+              [word]="word.text"
+              [tags]="word.tags"
+              [dictionary]="dictionary"
+              [color]="word.color"
+              (wordSave)="changeWord(word, partIndex, wordIndex, $event)"
+              (tagSelect)="tagSelect(word, $event)"
+              (tagUnselect)="tagSelect(word, $event)"
+            ></app-text-tagged-word>
+          </ng-container>
+          <div>
+            ---------------------
+          </div>
+        </ng-container>
+      </div>
+    </div>
+    <div class="raskraska-container color-legend-container" *ngIf="categoriesColorsWithLegend">
+      <div *ngFor="let colorLegend of categoriesColorsWithLegend.entries()" class="color-legend">
+        <div class="color-rectangle" [ngStyle]="{'background-color': colorLegend[1]}"></div>
+        <div>{{colorLegend[0]}}</div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="">
+      <app-list [data]="singleCategoriesArray" [labels]="['word', 'tags', 'count']" title="Word by tag statistics"></app-list>
+    </div>
+    <div class="">
+      <app-list [data]="pairCategoriesArray" [labels]="['tag1', 'tag2', 'count']" title="Tag by tag statistics"></app-list>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,28 @@
+:host {
+  .container {
+    display: flex;
+  }
+  .color-rectangle {
+    width: 10px;
+    height: 10px;
+  }
+
+  .color-legend {
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+  }
+
+  .color-legend-container {
+    margin-top: 5px;
+    border: 1px solid grey;
+  }
+
+  .sentence-container {
+    padding: 5px;
+  }
+
+  .raskraska-container {
+    width: 450px;
+  }
+}

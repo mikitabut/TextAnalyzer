@@ -1,23 +1,37 @@
-<div class="dictionary-container" *ngIf="this.words.length || this.dictionary">
-  <app-dictionary-list
-    [data]="words"
-    [dictionary]="dictionary"
-    (wordRemove)="onRemoveWord($event)"
-    (saveDictionary)="onSaveDictionary($event)"
-  ></app-dictionary-list>
-</div>
 <div>
-  Загрузить текст----<input type="file" (change)="fileChanged($event)" />
-</div>
-<div>
-  Загрузить словарь-<input type="file" (change)="fileDictChanged($event)" />
-</div>
-<div *ngIf="this.files && this.files.length">
-  <div>
-    <input
-      type="button"
-      value="Clear loaded texts and words"
-      (click)="onClearLoadedTexts()"
-    />
+  <div class="dictionary-container" *ngIf="this.words.length || this.dictionary">
+    <app-dictionary-list
+      [data]="words"
+      [dictionary]="dictionary"
+      [wordMap]="wordMap"
+      (wordRemove)="onRemoveWord($event)"
+      (saveDictionary)="onSaveDictionary($event)"
+    ></app-dictionary-list>
   </div>
+  <div>
+    Загрузить текст----<input type="file" (change)="fileChanged($event)" />
+  </div>
+  <div>
+    Загрузить словарь-<input type="file" (change)="fileDictChanged($event)" />
+  </div>
+  <div>
+    Загрузить раскрашенный текст-<input type="file" (change)="fileTextChanged($event)" />
+  </div>
+  <div *ngIf="this.files && this.files.length">
+    <div>
+      <input
+        type="button"
+        value="Clear loaded texts and words"
+        (click)="onClearLoadedTexts()"
+      />
+    </div>
+  </div>
+</div>
+<div>
+  <app-text-tagging
+    [text]="raskrText"
+    [dictionary]="wordMap"
+    [savedText]="raskrTextEnd"
+    (saveText)="onSaveText($event)"
+  ></app-text-tagging>
 </div>
