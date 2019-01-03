@@ -1,5 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FileSaverService } from 'ngx-filesaver';
+declare var nlp: any;
+
 @Component({
   selector: 'app-entry-page',
   templateUrl: './entry.page.html',
@@ -8,6 +10,7 @@ import { FileSaverService } from 'ngx-filesaver';
 export class EntryPageComponent {
   fileReader = new FileReader();
   dictReader = new FileReader();
+  textReader = new FileReader();
 
   words = [];
   dictionary = '';
@@ -16,11 +19,28 @@ export class EntryPageComponent {
   currentFile: File;
   dictFile: any;
 
+  // Trick for fast solution(rewrite if you want)
+  wordMap = new Map<
+    string,
+    {
+      word: string;
+      count: number;
+      fileMeta: { filename: string; text: string }[];
+      tags: string[];
+      canonConn?: string;
+      canonChildrens: string[];
+      isCanon: boolean;
+    }
+  >();
+  raskrText = '';
+  textFile: any;
+  raskrTextEnd = '';
+
   constructor(private _FileSaverService: FileSaverService, private cdr: ChangeDetectorRef) {
     this.fileReader.onload = () => {
       this.dictionary = null;
       this.words = [
-        ...(this.fileReader.result as string)
+        ...nlp(this.fileReader.result as string).normalize({case: false, punctuation: false}).out('text')
           .split(/[ \!\?\_\-\.\,\;\]\[\)\(\:\s\n\t\r\d]/)
           .map(element => element.trim())
           .filter(word => word.length > 0)
@@ -30,10 +50,16 @@ export class EntryPageComponent {
             text: this.fileReader.result
           }))
       ];
+      this.raskrText = this.fileReader.result as string;
+      this.cdr.detectChanges();
     };
     this.dictReader.onload = () => {
       this.dictionary = this.dictReader.result as string;
       this.onClearLoadedTexts();
+      this.cdr.detectChanges();
+    };
+    this.textReader.onload = () => {
+      this.raskrTextEnd = this.textReader.result as string;
       this.cdr.detectChanges();
     };
   }
@@ -47,6 +73,10 @@ export class EntryPageComponent {
     this.dictFile = e.target.files[0];
     this.uploadDictDocument();
   }
+  fileTextChanged(e) {
+    this.textFile = e.target.files[0];
+    this.uploadTextDocument();
+  }
 
   uploadDocuments() {
     let i = 0;
@@ -59,6 +89,9 @@ export class EntryPageComponent {
   }
   uploadDictDocument() {
     this.dictReader.readAsText(this.dictFile);
+  }
+  uploadTextDocument() {
+    this.textReader.readAsText(this.textFile);
   }
 
   onClearLoadedTexts() {
@@ -83,5 +116,9 @@ export class EntryPageComponent {
   onSaveDictionary(obj) {
     const jsonStr = JSON.stringify(Array.from(obj.entries()));
     this._FileSaverService.saveText(jsonStr, 'dictionary.dct');
+  }
+  onSaveText(obj) {
+    const jsonStr = JSON.stringify(obj);
+    this._FileSaverService.saveText(jsonStr, 'raskrText.rskr');
   }
 }

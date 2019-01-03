@@ -1,0 +1,78 @@
+:host {
+  margin-right: 5px;
+  position: relative;
+
+  .word-container {
+    border: 1px solid transparent;
+    border-bottom-width: 5px;
+    border-radius: 5px;
+    text-decoration: none;
+
+    &:hover {
+      border-color: #98dafb;
+      cursor: pointer;
+    }
+  }
+
+  .selected {
+    border: 1px solid red;
+  }
+
+  .values-changer {
+    min-width: 400px;
+    max-width: 400px;
+    display: block;
+    z-index: 1;
+    border: 1px solid grey;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px;
+    position: absolute;
+    background-color: white;
+    right: 0;
+    box-shadow: 1px;
+
+    &.hidden {
+      display: none;
+    }
+
+    .title {
+      font-size: 14px;
+      color: cornflowerblue;
+    }
+    .tag-container {
+      display:flex;
+      flex-wrap: wrap;
+
+      .tag {
+        margin: 3px;
+        padding: 1px;
+        border: 1px solid tan;
+        border-radius: 7px;
+        font-size: 14px;
+
+        &:hover {
+          cursor: pointer;
+          box-shadow: 0 3px 3px rgba(0,0,0,0.5);
+        }
+      }
+
+      .selected-tag {
+        background-color: tan;
+      }
+    }
+
+    .input {
+      width: 60%;
+    }
+
+    .btn {
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .values-container {
+      padding: 5px 0;
+    }
+  }
+}

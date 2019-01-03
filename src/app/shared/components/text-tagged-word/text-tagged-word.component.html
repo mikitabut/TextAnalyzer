@@ -1,0 +1,42 @@
+<span class="word-container" [ngStyle]="{ 'border-bottom-color': color}" (click)="openValuesChanger()" [ngClass]="{selected: valuesChangerOpened}">
+  {{word}}
+</span>
+<div class="values-changer" [class.hidden]="!valuesChangerOpened" >
+  <div class="values-container">
+      <span class="title" >Selected word:</span>
+      <input #wordInput [value]="word" class="input">
+      <i class="icon-ok btn" (click)="onWordSave(wordInput.value)"></i>
+  </div>
+  <div class="values-container">
+      <div class="title">Selected Tags:</div>
+      <div class="tag-container">
+        <div *ngFor="let selectedTag of selectedTagsVisible"
+              class="tag selected-tag"
+              (click)="onTagUnselect(selectedTag)"
+        >{{selectedTag}}</div>
+      </div>
+  </div>
+  <div class="values-container">
+      <div class="title">Suggested Tags from dictionary:</div>
+      <div class="tag-container">
+        <div *ngFor="let dictionaryTag of dictionaryTagsVisible"
+              class="tag"
+              (click)="onTagSelect(dictionaryTag)"
+        >{{dictionaryTag}}</div>
+      </div>
+  </div>
+  <div class="values-container">
+      <div class="title">All predefined tags:</div>
+      <div class="tag-container">
+        <div *ngFor="let globalTag of worldTagsVisible"
+              class="tag"
+              (click)="onTagSelect(globalTag)"
+        >{{globalTag}}</div>
+      </div>
+  </div>
+  <div class="values-container">
+      <span class="title">Write your own tag(separated by '|'):</span>
+      <input #tagInput class="input">
+      <i class="icon-ok btn" (click)="onAddNewTag(tagInput.value)"></i>
+  </div>
+</div>
