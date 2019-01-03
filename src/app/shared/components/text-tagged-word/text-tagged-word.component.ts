@@ -38,7 +38,7 @@ export class TextTaggedWordComponent implements OnChanges {
     const resultTags = Object.keys(nlp('').world().tags);
     for (const value of Array.from(this.dictionary.values())) {
       resultTags.push(
-        ...value.tags.filter(
+        ...(value as any).tags.filter(
           tag => !resultTags.includes(tag) && tag !== '(EMPTY)'
         )
       );
