@@ -1,5 +1,9 @@
+<div>
+  {{title}}
+</div>
+
 <div class="container labels">
-  <span class="block labels" *ngFor="let label of labels">{{label}}</span>
+  <span class="block labels" *ngFor="let label of labels" (click)="onSort(label)">{{label}}</span>
 </div>
 
 <div *ngFor="let val of data" class="container">

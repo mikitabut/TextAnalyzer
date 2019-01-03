@@ -12,9 +12,9 @@
               [tags]="word.tags"
               [dictionary]="dictionary"
               [color]="word.color"
-              (wordSave)="changeWord(word, sentenceIndex, partIndex + wordIndex, $event)"
+              (wordSave)="changeWord(word, partIndex, wordIndex, $event)"
               (tagSelect)="tagSelect(word, $event)"
-              (tagUnselect)="tagUnselect(word, $event)"
+              (tagUnselect)="tagSelect(word, $event)"
             ></app-text-tagged-word>
           </ng-container>
           <div>
@@ -32,10 +32,10 @@
   </div>
   <div>
     <div class="">
-      <app-list [data]="singleCategoriesArray" [labels]="['word', 'tags', 'count']"></app-list>
+      <app-list [data]="singleCategoriesArray" [labels]="['word', 'tags', 'count']" title="Word by tag statistics"></app-list>
     </div>
     <div class="">
-      <app-list [data]="pairCategoriesArray" [labels]="['tag1', 'tag2', 'count']"></app-list>
+      <app-list [data]="pairCategoriesArray" [labels]="['tag1', 'tag2', 'count']" title="Tag by tag statistics"></app-list>
     </div>
   </div>
 </div>

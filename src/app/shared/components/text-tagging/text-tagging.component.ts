@@ -118,15 +118,16 @@ export class TextTaggingComponent implements OnChanges {
     [...processedSentence, ...dictWords].reduce((prevTagsArr, word) => {
       const sortedTags = word.tags.filter(value => value !== '(EMPTY)').sort() as any[];
       const sortedTagsString = sortedTags.join(',');
-      if (this.singleCategories.has(sortedTagsString)) {
-        const curVal = this.singleCategories.get(sortedTagsString);
-        this.singleCategories.set(sortedTagsString, {
+      const key1 = sortedTags.join(',') + '_' + word.text;
+      if (this.singleCategories.has(key1)) {
+        const curVal = this.singleCategories.get(key1);
+        this.singleCategories.set(key1, {
           word: word.text || word.word,
           tags: sortedTagsString,
           count: word.fict ? curVal.count : curVal.count + 1
         });
       } else {
-        this.singleCategories.set(sortedTagsString, {
+        this.singleCategories.set(key1, {
           word: word.text,
           tags: sortedTagsString,
           count: word.fict ? 0 : 1
@@ -178,6 +179,14 @@ export class TextTaggingComponent implements OnChanges {
         realWord.tags = currTags;
       }
     });
+    this.processedSentences = this.getProcessedSentences(
+      this.processedSentences,
+      true
+    );
+  }
+
+  changeWord(word, sentenceIndex, wordIndex, newWord ) {
+    word.text = newWord;
     this.processedSentences = this.getProcessedSentences(
       this.processedSentences,
       true
